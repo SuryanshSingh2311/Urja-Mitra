@@ -3,12 +3,10 @@ export default {
   content: [
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
+    "./*.{js,jsx,ts,tsx}",
   ],
-<<<<<<< HEAD
   theme: {
     extend: {},
   },
-=======
->>>>>>> 3cde65a (New Frontend for Bharat Urja Setu)
   plugins: [],
 }
