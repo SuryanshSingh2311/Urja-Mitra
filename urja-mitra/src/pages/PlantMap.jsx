@@ -513,9 +513,13 @@ export default function PlantMap() {
               </button>
               <button 
   onClick={() => {
-    const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api/v1';
-    // Ensure clean endpoint construction
-    const downloadUrl = `${baseUrl.replace(/\/$/, '')}/plants/${dossierModalPlant.id}/dossier-pdf`;
+    const rawBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api/v1';
+    // Normalize base URL to ensure /api/v1 is present
+    const baseUrl = rawBaseUrl.endsWith('/api/v1') 
+      ? rawBaseUrl 
+      : `${rawBaseUrl.replace(/\/$/, '')}/api/v1`;
+      
+    const downloadUrl = `${baseUrl}/plants/${dossierModalPlant.id}/dossier-pdf`;
     window.open(downloadUrl, '_blank');
   }}
   className="px-5 py-2 bg-brand-accent hover:bg-brand-accent/90 text-white font-bold rounded-xl text-xs flex items-center gap-1.5 shadow-lg shadow-brand-accent/20 transition-all"
