@@ -513,7 +513,10 @@ export default function PlantMap() {
               </button>
               <button 
   onClick={() => {
-    window.open(`http://localhost:8000/api/v1/plants/${dossierModalPlant.id}/dossier-pdf`, '_blank');
+    const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api/v1';
+    // Ensure clean endpoint construction
+    const downloadUrl = `${baseUrl.replace(/\/$/, '')}/plants/${dossierModalPlant.id}/dossier-pdf`;
+    window.open(downloadUrl, '_blank');
   }}
   className="px-5 py-2 bg-brand-accent hover:bg-brand-accent/90 text-white font-bold rounded-xl text-xs flex items-center gap-1.5 shadow-lg shadow-brand-accent/20 transition-all"
 >
