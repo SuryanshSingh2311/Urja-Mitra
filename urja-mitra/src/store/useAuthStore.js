@@ -1,7 +1,13 @@
 import { create } from 'zustand';
 import axios from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api/v1';
+// Ensure /api/v1 is appended to the Render API base URL
+const getApiBaseUrl = () => {
+  const rawUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api/v1';
+  return rawUrl.endsWith('/api/v1') ? rawUrl : `${rawUrl.replace(/\/$/, '')}/api/v1`;
+};
+
+const API_BASE_URL = getApiBaseUrl();
 
 export const useAuthStore = create((set) => ({
   user: JSON.parse(localStorage.getItem('urja_user')) || null,
