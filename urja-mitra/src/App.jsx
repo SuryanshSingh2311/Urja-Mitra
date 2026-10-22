@@ -8,6 +8,7 @@ import PlantMap from './pages/PlantMap';
 import Calculators from './pages/Calculators';
 import CreateRFQModal from './components/CreateRFQModal';
 import Jobs from './pages/Jobs';
+import AuthModal from './components/AuthModal';
 
 export default function App() {
   return (
@@ -33,6 +34,29 @@ export default function App() {
         {/* Global RFQ Modal */}
         <CreateRFQModal />
       </div>
+      <div className="min-h-screen bg-brand-bg text-slate-100 flex flex-col font-sans">
+        <Header />
+        
+        <main className="flex-1">
+          <Routes>
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/map" element={<PlantMap />} />
+            
+            {/* Standalone Auth Routes redirecting to Modal on home */}
+            <Route path="/login" element={<AuthPage defaultLogin={true} />} />
+            <Route path="/signup" element={<AuthPage defaultLogin={false} />} />
+          </Routes>
+        </main>
+      </div>
     </BrowserRouter>
+  );
+}
+
+  function AuthPage({ defaultLogin }) {
+  const [isOpen, setIsOpen] = useState(true);
+  return (
+    <div className="min-h-[80vh] flex items-center justify-center">
+      <AuthModal isOpen={isOpen} onClose={() => setIsOpen(false)} />
+    </div>
   );
 }
