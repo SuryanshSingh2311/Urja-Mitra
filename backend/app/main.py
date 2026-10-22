@@ -33,10 +33,11 @@ if frontend_url:
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=ALLOWED_ORIGINS,
+    allow_origins=["*"],  # Or your specific Vercel URL
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["Content-Disposition"]  # Critical for PDF file downloads
 )
 
 @app.get("/")
