@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
   Zap, 
   Building2, 
@@ -11,6 +12,7 @@ import {
 import { useRFQStore } from '../store/useRFQStore';
 
 export default function Dashboard() {
+  const navigate = useNavigate();
   // Read live RFQs and modal action from Zustand store
   const { rfqs, openModal } = useRFQStore();
 
@@ -39,7 +41,7 @@ export default function Dashboard() {
             <span className="bg-brand-accent/10 text-brand-accent text-[11px] font-bold px-2.5 py-0.5 rounded-full border border-brand-accent/20">
               V1.0 Operational
             </span>
-            <span className="text-xs text-brand-muted">Welcome back, Arthur</span>
+            <span className="text-xs text-brand-muted">Welcome back</span>
           </div>
           <h2 className="text-2xl font-bold text-white tracking-tight">Bharat UrjaSetu Overview</h2>
           <p className="text-xs text-brand-muted max-w-xl">
@@ -48,8 +50,11 @@ export default function Dashboard() {
         </div>
         
         <div className="flex items-center gap-3 relative z-10">
-          <button className="bg-brand-card hover:bg-brand-border text-white text-xs font-semibold px-4 py-2.5 rounded-xl border border-brand-border transition-colors">
-            Download Report
+          <button 
+            onClick={() => navigate('/map')}
+            className="bg-brand-card hover:bg-brand-border text-white text-xs font-semibold px-4 py-2.5 rounded-xl border border-brand-border transition-colors"
+          >
+            Explore Map
           </button>
           <button 
             onClick={openModal}
@@ -85,17 +90,13 @@ export default function Dashboard() {
       {/* Main Grid: RFQ Table & Quick Plant Panel */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         
-        {/* Recent RFQs Table (Connected directly to store.rfqs) */}
+        {/* Recent RFQs Table */}
         <div className="lg:col-span-2 bg-brand-card border border-brand-border rounded-2xl p-5 space-y-4">
           <div className="flex justify-between items-center pb-2 border-b border-brand-border">
             <div>
               <h3 className="text-sm font-bold text-white">Live Procurement RFQs</h3>
               <p className="text-[11px] text-brand-muted">Active equipment & service tenders ({rfqs.length} Total)</p>
             </div>
-            <button className="text-xs text-brand-accent hover:underline font-semibold flex items-center gap-1">
-              <span>View All</span>
-              <ArrowUpRight size={14} />
-            </button>
           </div>
 
           <div className="overflow-x-auto">
@@ -171,8 +172,12 @@ export default function Dashboard() {
             ))}
           </div>
 
-          <button className="w-full bg-brand-bg hover:bg-brand-border text-brand-muted hover:text-white font-semibold py-2 rounded-xl text-xs border border-brand-border transition-colors">
-            Explore Full Plant Directory Map
+          <button 
+            onClick={() => navigate('/map')}
+            className="w-full bg-brand-bg hover:bg-brand-border text-brand-muted hover:text-white font-semibold py-2 rounded-xl text-xs border border-brand-border transition-colors flex items-center justify-center gap-1"
+          >
+            <span>Explore Full Plant Directory Map</span>
+            <ArrowUpRight size={14} />
           </button>
         </div>
 

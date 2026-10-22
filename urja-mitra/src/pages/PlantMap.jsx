@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
+import axios from 'axios';
 import { 
   Filter, 
   CheckCircle, 
@@ -14,10 +15,8 @@ import {
   Download
 } from 'lucide-react';
 
-// Read CARTO API Key from Vite env or fallback to empty string
 const CARTO_KEY = import.meta.env.VITE_CARTO_API_KEY || '';
 
-// Custom Glowing Dark Pin Marker Icon for Leaflet
 const customMarkerIcon = new L.DivIcon({
   className: 'custom-leaflet-marker',
   html: `<div style="
@@ -30,22 +29,21 @@ const customMarkerIcon = new L.DivIcon({
     cursor: pointer;
   "></div>`,
   iconSize: [20, 20],
-  iconAnchor: [10, 10]
+  iconAnchor: [10, 10],
+  popupAnchor: [0, -10]
 });
 
 export default function PlantMap() {
-  // Filter States
   const [selectedState, setSelectedState] = useState('All States');
   const [selectedFeedstock, setSelectedFeedstock] = useState('All Feedstocks');
   const [selectedTech, setSelectedTech] = useState('All Technologies');
   const [minCapacity, setMinCapacity] = useState('');
   const [maxCapacity, setMaxCapacity] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+  const [isDownloading, setIsDownloading] = useState(false);
 
-  // Modal State for Inspection Dossier
   const [dossierModalPlant, setDossierModalPlant] = useState(null);
 
-  // Plant Dataset with Real Geographic Lat/Lng Coordinates in India
   const plantsData = [
     { 
       id: 1, 
@@ -157,10 +155,8 @@ export default function PlantMap() {
     },
   ];
 
-  // Selected Active Plant
   const [selectedPlant, setSelectedPlant] = useState(plantsData[3]);
 
-  // Filter Engine
   const filteredPlants = useMemo(() => {
     return plantsData.filter((plant) => {
       const matchState = selectedState === 'All States' || plant.state === selectedState;
@@ -193,10 +189,40 @@ export default function PlantMap() {
     return { operational, underConstruction, total: filteredPlants.length, totalCapacity };
   }, [filteredPlants]);
 
-  // Dynamic Tile URL based on API key presence
   const tileUrl = CARTO_KEY 
     ? `https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png?key=${CARTO_KEY}`
     : 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+
+  // Secure Blob Download Handler with JWT support
+  const handlePdfDownload = async (plantId) => {
+    setIsDownloading(true);
+    try {
+      const rawBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api/v1';
+      const baseUrl = rawBaseUrl.endsWith('/api/v1') ? rawBaseUrl : `${rawBaseUrl.replace(/\/$/, '')}/api/v1`;
+      const downloadUrl = `${baseUrl}/plants/${plantId}/dossier-pdf`;
+
+      const token = localStorage.getItem('urja_token');
+      const response = await axios.get(downloadUrl, {
+        responseType: 'blob',
+        headers: token ? { Authorization: `Bearer ${token}` } : {}
+      });
+
+      // Convert response blob to download link
+      const blob = new Blob([response.data], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `Plant_Dossier_${plantId}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      alert('Failed to download PDF dossier. Please ensure backend service is awake and running.');
+    } finally {
+      setIsDownloading(false);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -326,7 +352,6 @@ export default function PlantMap() {
           
           <div className="relative bg-[#0d1117] border border-brand-border rounded-2xl min-h-[520px] overflow-hidden p-2 shadow-inner">
             
-            {/* Interactive Dark Mode Leaflet Map Container */}
             <MapContainer 
               center={[22.5937, 78.9629]} 
               zoom={5} 
@@ -338,7 +363,6 @@ export default function PlantMap() {
                 attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
               />
 
-              {/* Dynamic GPS Markers */}
               {filteredPlants.map((plant) => (
                 <Marker 
                   key={plant.id} 
@@ -449,7 +473,6 @@ export default function PlantMap() {
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-brand-card border border-brand-border rounded-2xl w-full max-w-2xl p-6 shadow-2xl relative space-y-5 animate-in fade-in zoom-in-95 duration-200">
             
-            {/* Modal Header */}
             <div className="flex justify-between items-start pb-4 border-b border-brand-border">
               <div className="flex items-center gap-3">
                 <div className="p-3 bg-brand-accent/10 text-brand-accent rounded-xl border border-brand-accent/20">
@@ -468,7 +491,6 @@ export default function PlantMap() {
               </button>
             </div>
 
-            {/* Dossier Report Details Grid */}
             <div className="space-y-4 text-xs">
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                 <div className="bg-brand-bg/60 p-3 rounded-xl border border-brand-border">
@@ -503,7 +525,6 @@ export default function PlantMap() {
               </div>
             </div>
 
-            {/* Actions */}
             <div className="flex justify-end gap-3 pt-2 border-t border-brand-border">
               <button 
                 onClick={() => setDossierModalPlant(null)}
@@ -512,21 +533,13 @@ export default function PlantMap() {
                 Close
               </button>
               <button 
-  onClick={() => {
-    const rawBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api/v1';
-    // Normalize base URL to ensure /api/v1 is present
-    const baseUrl = rawBaseUrl.endsWith('/api/v1') 
-      ? rawBaseUrl 
-      : `${rawBaseUrl.replace(/\/$/, '')}/api/v1`;
-      
-    const downloadUrl = `${baseUrl}/plants/${dossierModalPlant.id}/dossier-pdf`;
-    window.open(downloadUrl, '_blank');
-  }}
-  className="px-5 py-2 bg-brand-accent hover:bg-brand-accent/90 text-white font-bold rounded-xl text-xs flex items-center gap-1.5 shadow-lg shadow-brand-accent/20 transition-all"
->
-  <Download size={14} />
-  <span>Download Certified PDF</span>
-</button>
+                disabled={isDownloading}
+                onClick={() => handlePdfDownload(dossierModalPlant.id)}
+                className="px-5 py-2 bg-brand-accent hover:bg-brand-accent/90 text-white font-bold rounded-xl text-xs flex items-center gap-1.5 shadow-lg shadow-brand-accent/20 transition-all disabled:opacity-50"
+              >
+                <Download size={14} />
+                <span>{isDownloading ? 'Generating PDF...' : 'Download Certified PDF'}</span>
+              </button>
             </div>
 
           </div>
