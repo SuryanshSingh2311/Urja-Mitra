@@ -5,11 +5,14 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# Fallback to SQLite for local development if PostgreSQL URL is not set
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./urjamitra.db")
 
+# Neon/Heroku supply postgres://, but SQLAlchemy 2.0 requires postgresql://
+if DATABASE_URL.startswith("postgres://"):
+    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
+
 engine = create_engine(
-    DATABASE_URL, 
+    DATABASE_URL,
     connect_args={"check_same_thread": False} if "sqlite" in DATABASE_URL else {}
 )
 
